@@ -1,46 +1,152 @@
-# FinTech Project - Part B
+# No Bull Investing — FINS3645 FinTech Project Part B
 
-> FIRST: rename this folder to <yourZID>_projectB (for example z1234567_projectB)
-> and move it into fins-agent/fins2026/. The folder name carrying your zID is your
-> submission.
+UNSW FINS3645: Financial Market Data Design & Analysis  
+Student: Karmanya Singh (z5520481)
 
-Part B: funds, sentiment, and the app (DFF Stations 3-4). This folder is also your
-public GitHub repository; the app entrypoint is streamlit_app.py at the root.
+## Project Overview
 
-## How to run
+No Bull Investing is a Streamlit-based prototype for comparing systematically managed multi-asset funds and exploring finance-specific news sentiment analytics.
 
-    pip install -r requirements.txt -r requirements-dev.txt   # dev adds nltk (VADER)
-    python scripts/run_part_b.py            # reproduces your results into results/
-    streamlit run streamlit_app.py          # runs the app locally
+The project implements twelve out-of-sample funds across three asset families:
 
-Load raw data through src/data_access.py (see context/DATA_GUIDE.md); never commit
-raw data. The deployed app, by contrast, reads your precomputed artifacts from
-results/ - those ARE committed.
+- Equity
+- Crypto
+- Combined Equity + Crypto
 
-## What is here
+Each family is evaluated using four portfolio-construction methods:
 
-- streamlit_app.py    the app entrypoint (repo root)
-- .streamlit/         app config
-- PROJECT_BRIEF.md    the full assignment brief for your course (read this first)
-- src/                your code (data_access is provided; portfolios/sentiment/fusion are yours)
-- scripts/            runnable scripts that reproduce your results
-- results/            your outputs: figures in results/figures/, tables in results/tables/, app data artifacts in results/data/
-- context/            provided data guide and project context (do not edit)
-- report/             your report - see report/OUTLINE.md (author in Word, submit report.pdf)
-- ai/                 your prompt logs and AI notes
-- requirements-dev.txt build/repro-only deps (nltk); keep them out of the deployed app
-- AGENTS.md / CLAUDE.md   replace the stub for your tool (you need just one) with your own
+- Equal Weight
+- Minimum Variance
+- Maximum Sharpe
+- Risk Parity
 
-## Deploy + hand in
+The project also extends Standard VADER with a 32-term Finance-Adjusted VADER lexicon and tests whether the resulting lagged sector sentiment signal improves an Equity Equal Weight portfolio.
 
-This folder is its own GitHub repo, independent of fins-agent. Your AI agent can run
-the check and push the repo; the browser deploy is yours (it needs your login). See
-PROJECT_BRIEF.md Appendix D and docs/STUDENT_DEPLOY.md (in this folder). In short:
+## Main Features
 
-    python scripts/check_handin.py        # your agent can run this
-    # commit your precomputed app artifacts under results/ (the app reads them)
-    # git init in this folder, then push the contents to a NEW private GitHub repo
+The Streamlit app supports four parts of the investor journey:
 
-Then YOU connect the repo on share.streamlit.io (entrypoint streamlit_app.py). At
-hand-in, make the repo PUBLIC, submit the live URL + repo link, and also zip this
-whole folder and upload the zip to Moodle.
+1. **Compare Funds**
+   - Compare CAGR, volatility, Sharpe ratio and maximum drawdown across all twelve funds.
+   - View return-versus-risk results across Equity, Crypto and Combined strategies.
+
+2. **Fund Fact Sheet**
+   - Inspect realised out-of-sample growth of $1.
+   - Review risk metrics and latest available target holdings.
+   - Identify portfolio concentration.
+
+3. **Build an Allocation**
+   - Select up to four funds.
+   - Assign starting portfolio percentages.
+   - View blended historical performance over the common out-of-sample period.
+
+4. **Sentiment Analytics**
+   - Compare Standard VADER and Finance-Adjusted VADER.
+   - Explore sector sentiment over time.
+   - Review finance-term coverage, neutral-rate changes and news coverage.
+
+## Methodology Summary
+
+Portfolio backtests use:
+
+- monthly rebalancing,
+- first eligible trading day of each month,
+- a 252-observation rolling estimation window,
+- long-only weights,
+- no look-ahead,
+- zero risk-free rate,
+- zero transaction costs in the current model,
+- natural portfolio-weight drift between monthly rebalance dates.
+
+Annualisation conventions:
+
+- Equity: 252
+- Combined: 252
+- Crypto: 365
+
+The Combined funds use the equity trading calendar, so weekend-only crypto movements are not included in the Combined return series.
+
+## Sentiment Extension
+
+The Part B innovation is a targeted Finance-Adjusted VADER extension.
+
+The final lexicon contains 32 directional finance terms selected to improve sensitivity to financial headline language without replacing the broader Standard VADER model.
+
+Key validated outputs include:
+
+- 146,830 mapped headlines,
+- Standard VADER neutral rate: 48.85%,
+- Finance-Adjusted neutral rate: 45.96%,
+- neutral-rate reduction: 2.88 percentage points,
+- 4,257 Standard-neutral headlines rescued by the Finance-Adjusted model.
+
+The fusion test uses a one-trading-day-lagged sector signal and a fixed `tilt_strength = 1.0`.
+
+## Repository Structure
+
+- `streamlit_app.py` — Streamlit app entry point
+- `src/` — reusable portfolio, ETL, sentiment and fusion logic
+- `scripts/` — build, validation and figure-generation scripts
+- `results/data/` — precomputed data consumed by the app
+- `results/tables/` — performance and validation tables
+- `results/figures/` — report figures
+- `report/report.docx` — editable report source
+- `report/report.pdf` — final report
+- `ai/` — curated AI workflow evidence
+- `CLAUDE.md` / `AGENTS.md` — project-specific AI working instructions
+- `context/` — supplied project/data context
+- `tests/` — smoke tests
+
+## Reproduce the Project
+
+Install the application and development dependencies:
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
+Rebuild the Part B outputs:
+
+```bash
+python scripts/run_part_b.py
+```
+
+Generate the report figures:
+
+```bash
+python scripts/make_figures.py
+```
+
+Run the Streamlit app locally:
+
+```bash
+python -m streamlit run streamlit_app.py
+```
+
+Run the hand-in checker:
+
+```bash
+python scripts/check_handin.py
+```
+
+## Deployment
+
+Live app:
+
+https://no-bull-investing-z5520481.streamlit.app/
+
+Public GitHub repository:
+
+https://github.com/karmanya13/z5520481_projectB
+
+The deployed application reads the precomputed artifacts under `results/` and does not rerun the full backtest or VADER pipeline on page load.
+
+## Data
+
+Raw course data is not committed to this repository.
+
+The project loads the hosted course data through `src/data_access.py`. Derived outputs required by the Streamlit application are committed under `results/`.
+
+## Notes
+
+This is an academic prototype and historical backtest. It does not execute live trades and does not guarantee future investment performance.
